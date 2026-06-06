@@ -290,7 +290,8 @@
 					{#if ioMode === 'export'}
 						<button onclick={downloadCurrentJson}>💾 ファイルに保存</button>
 					{:else}
-						<button onclick={commitImport}>読込</button>
+						<button onclick={commitImport}>📋 ペーストを読込</button>
+						<span class="io-sep">または</span>
 						<label class="io-file-label">
 							📂 ファイルから読込
 							<input type="file" accept=".json,application/json" onchange={handleImportFile} hidden />
@@ -719,6 +720,11 @@
 		display: inline-block;
 	}
 	.io-file-label:hover { background: #3a8cdf; }
+	.io-sep {
+		font-size: 0.78rem;
+		color: #5a6473;
+		align-self: center;
+	}
 	.io-customs { margin-top: 0.6rem; border-top: 1px solid #e0e4ec; padding-top: 0.4rem; }
 	.io-customs-title { font-size: 0.75rem; color: #5a6473; margin-bottom: 0.3rem; }
 	.io-custom-row {
