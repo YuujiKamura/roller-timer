@@ -254,7 +254,7 @@
 	<title>ローラータイマー — {timer.workout.name}</title>
 </svelte:head>
 
-<main class={timer.current ? kindClass(timer.current.kind) : 'k-done'}>
+<main class={timer.current ? kindClass(timer.current.kind) : 'k-done'} style:--zone-color={zoneColor(timer.current?.zone) ?? null}>
 	<section class="timer">
 		<div class="topbar">
 			<select
@@ -462,10 +462,7 @@
 		overflow: hidden;
 		transition: background 0.5s;
 	}
-	main.k-work { background: linear-gradient(180deg, #ffd1d1 0%, #f4f6fa 60%); }
-	main.k-rest { background: linear-gradient(180deg, #c5efe5 0%, #f4f6fa 60%); }
-	main.k-prep { background: linear-gradient(180deg, #ffe2b8 0%, #f4f6fa 60%); }
-	main.k-done { background: #f4f6fa; }
+	main { background: #f4f6fa; }
 
 	.timer {
 		display: flex;
@@ -519,10 +516,7 @@
 		letter-spacing: 0.16em;
 		margin-top: 0.1rem;
 	}
-	main.k-work .kind { color: #d12222; }
-	main.k-rest .kind { color: #15806d; }
-	main.k-prep .kind { color: #b56b00; }
-	main.k-done .kind { color: #5a6678; }
+	.kind { color: #5a6678; }
 
 	.label { font-size: clamp(1.5rem, 2.6vw, 2.1rem); font-weight: 800; text-align: center; padding: 0 1rem; color: #15202b; }
 	.note { font-size: clamp(1rem, 1.5vw, 1.25rem); color: #4a5568; text-align: center; padding: 0 1rem; max-width: 38ch; line-height: 1.4; }
@@ -543,15 +537,12 @@
 	}
 	.ring .track { fill: none; stroke: #e1e6ee; stroke-width: 14; }
 	.ring .prog {
+		stroke: var(--zone-color, #5a6678);
 		fill: none;
 		stroke-width: 14;
 		stroke-linecap: round;
 		transition: stroke-dashoffset 0.95s linear, stroke 0.4s;
 	}
-	main.k-work .ring .prog { stroke: #d12222; }
-	main.k-rest .ring .prog { stroke: #15806d; }
-	main.k-prep .ring .prog { stroke: #b56b00; }
-	main.k-done .ring .prog { stroke: #a0aec0; }
 
 	.seconds {
 		position: absolute;
@@ -796,9 +787,6 @@
 		font-size: 0.92rem;
 		box-shadow: 0 1px 2px rgba(20, 30, 50, 0.04);
 	}
-	.row.k-work { border-left-color: #d12222; }
-	.row.k-rest { border-left-color: #15806d; }
-	.row.k-prep { border-left-color: #b56b00; }
 	.row.past { opacity: 0.45; }
 	.row.now {
 		background: #fff7d0;
@@ -806,9 +794,6 @@
 		font-weight: 700;
 	}
 	.kind-tag { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; }
-	.row.k-work .kind-tag { color: #d12222; }
-	.row.k-rest .kind-tag { color: #15806d; }
-	.row.k-prep .kind-tag { color: #b56b00; }
 	.dur { font-family: ui-monospace, monospace; font-weight: 600; color: #2d3748; font-size: 0.92rem; }
 	.lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #15202b; }
 	.note-row {
