@@ -3,7 +3,7 @@
 	import { TimerState, findPhaseSection } from '$lib/timer.svelte';
 	import { presets, findPresetById } from '$lib/presets/index';
 	import { fmtMmSs } from '$lib/types';
-	import { beepCountdown, beepDone, beepPhaseChange, beepTick, primeAudio, setMuted } from '$lib/audio';
+	import { beepCountdown, beepDone, beepPhaseChange, beepTick, getMasterVolume, primeAudio, setMasterVolume, setMuted } from '$lib/audio';
 	import { sensorStore } from '$lib/sensors/store.svelte';
 	import { connectFtms, connectHrm, disconnectFtms, disconnectHrm, isWebBluetoothSupported, tryAutoReconnect } from '$lib/sensors/bluetooth';
 	import { hasUsefulSamples, sessionRecorder } from '$lib/session/recorder.svelte';
@@ -11,10 +11,19 @@
 
 	const STORAGE_PRESET = 'tabata.preset';
 	const STORAGE_MUTE = 'tabata.muted';
+	const STORAGE_VOLUME = 'tabata.volume';
 
 	const timer = new TimerState(presets[0]);
 	let presetId = $state(presets[0].id);
 	let muted = $state(false);
+	let volume = $state(getMasterVolume());
+
+	function handleVolume(e: Event) {
+		const v = Number((e.currentTarget as HTMLInputElement).value) / 100;
+		volume = v;
+		setMasterVolume(v);
+		try { localStorage.setItem(STORAGE_VOLUME, String(v)); } catch { /* ignore */ }
+	}
 	const sensors = sensorStore;
 	const recorder = sessionRecorder;
 	let bleSupported = $state(false);
@@ -112,6 +121,14 @@
 			if (savedId) selectPreset(savedId);
 			const savedMute = localStorage.getItem(STORAGE_MUTE);
 			if (savedMute === '1') { muted = true; setMuted(true); }
+			const savedVol = localStorage.getItem(STORAGE_VOLUME);
+			if (savedVol) {
+				const v = Number(savedVol);
+				if (Number.isFinite(v) && v >= 0 && v <= 1) {
+					volume = v;
+					setMasterVolume(v);
+				}
+			}
 		} catch { /* ignore */ }
 		if (bleSupported) tryAutoReconnect();
 	});
@@ -145,6 +162,16 @@
 			<button class="mute" onclick={toggleMute} aria-label={muted ? 'ミュート解除' : 'ミュート'}>
 				{muted ? '🔇' : '🔊'}
 			</button>
+			<input
+				class="volume"
+				type="range"
+				min="0"
+				max="100"
+				step="5"
+				value={Math.round(volume * 100)}
+				oninput={handleVolume}
+				aria-label="音量"
+			/>
 		</div>
 		<div class="meta">
 			<div class="section">{sectionPhaseLabel}</div>
@@ -261,9 +288,9 @@
 	:global(html, body) {
 		margin: 0;
 		padding: 0;
-		background: #111;
-		color: #eee;
-		font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+		background: #f4f6fa;
+		color: #15202b;
+		font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', sans-serif;
 		height: 100%;
 		overscroll-behavior: none;
 	}
@@ -278,12 +305,12 @@
 		padding: 1rem;
 		height: 100vh;
 		max-height: 100vh;
-		transition: background 0.4s;
+		transition: background 0.5s;
 	}
-	main.k-work { background: linear-gradient(180deg, #2a0808, #111 60%); }
-	main.k-rest { background: linear-gradient(180deg, #062623, #111 60%); }
-	main.k-prep { background: linear-gradient(180deg, #2a1800, #111 60%); }
-	main.k-done { background: #111; }
+	main.k-work { background: linear-gradient(180deg, #ffd1d1 0%, #f4f6fa 60%); }
+	main.k-rest { background: linear-gradient(180deg, #c5efe5 0%, #f4f6fa 60%); }
+	main.k-prep { background: linear-gradient(180deg, #ffe2b8 0%, #f4f6fa 60%); }
+	main.k-done { background: #f4f6fa; }
 
 	.timer {
 		display: flex;
@@ -304,40 +331,45 @@
 	}
 	.preset-select {
 		flex: 1 1 auto;
-		max-width: 22rem;
-		background: #1a1a1a;
-		color: #eee;
-		border: 1px solid #444;
-		border-radius: 8px;
-		padding: 0.45rem 0.6rem;
-		font-size: 0.95rem;
+		max-width: 24rem;
+		background: #fff;
+		color: #15202b;
+		border: 1.5px solid #cbd5e0;
+		border-radius: 10px;
+		padding: 0.6rem 0.8rem;
+		font-size: 1.15rem;
+		font-weight: 600;
 		cursor: pointer;
 	}
-	.preset-select:disabled { opacity: 0.5; cursor: not-allowed; }
+	.preset-select:disabled { opacity: 0.55; cursor: not-allowed; }
 	.mute {
-		font-size: 1.1rem;
-		padding: 0.4rem 0.7rem;
+		font-size: 1.4rem;
+		padding: 0.45rem 0.85rem;
 		min-width: 0;
+	}
+	.volume {
+		flex: 0 1 9rem;
+		accent-color: #d63838;
 	}
 	.meta {
 		text-align: center;
-		opacity: 0.75;
+		color: #4a5568;
 	}
-	.section { font-size: 0.95rem; margin-top: 0.15rem; }
+	.section { font-size: 1.15rem; font-weight: 600; margin-top: 0.15rem; }
 
 	.kind {
-		font-size: clamp(2rem, 5vw, 3rem);
-		font-weight: 800;
-		letter-spacing: 0.15em;
+		font-size: clamp(2.6rem, 6vw, 4rem);
+		font-weight: 900;
+		letter-spacing: 0.16em;
 		margin-top: 0.25rem;
 	}
-	main.k-work .kind { color: #ff5a5a; }
-	main.k-rest .kind { color: #4ee2c8; }
-	main.k-prep .kind { color: #ffb266; }
-	main.k-done .kind { color: #888; }
+	main.k-work .kind { color: #d12222; }
+	main.k-rest .kind { color: #15806d; }
+	main.k-prep .kind { color: #b56b00; }
+	main.k-done .kind { color: #5a6678; }
 
-	.label { font-size: 1.4rem; font-weight: 600; text-align: center; padding: 0 1rem; }
-	.note { font-size: 0.95rem; opacity: 0.7; text-align: center; padding: 0 1rem; max-width: 36ch; }
+	.label { font-size: clamp(1.5rem, 2.6vw, 2.1rem); font-weight: 800; text-align: center; padding: 0 1rem; color: #15202b; }
+	.note { font-size: clamp(1rem, 1.5vw, 1.25rem); color: #4a5568; text-align: center; padding: 0 1rem; max-width: 38ch; line-height: 1.4; }
 
 	.ring-wrap {
 		position: relative;
@@ -353,60 +385,66 @@
 		height: auto;
 		transform: rotate(-90deg);
 	}
-	.ring .track { fill: none; stroke: #1f1f1f; stroke-width: 14; }
+	.ring .track { fill: none; stroke: #e1e6ee; stroke-width: 16; }
 	.ring .prog {
 		fill: none;
-		stroke-width: 14;
+		stroke-width: 16;
 		stroke-linecap: round;
 		transition: stroke-dashoffset 0.95s linear, stroke 0.4s;
 	}
-	main.k-work .ring .prog { stroke: #ff5a5a; }
-	main.k-rest .ring .prog { stroke: #4ee2c8; }
-	main.k-prep .ring .prog { stroke: #ffb266; }
-	main.k-done .ring .prog { stroke: #555; }
+	main.k-work .ring .prog { stroke: #d12222; }
+	main.k-rest .ring .prog { stroke: #15806d; }
+	main.k-prep .ring .prog { stroke: #b56b00; }
+	main.k-done .ring .prog { stroke: #a0aec0; }
 
 	.seconds {
 		position: absolute;
 		font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-		font-size: clamp(4rem, 18vh, 12rem);
-		font-weight: 800;
+		font-size: clamp(5rem, 20vh, 14rem);
+		font-weight: 900;
 		font-variant-numeric: tabular-nums;
 		line-height: 1;
+		color: #15202b;
 	}
 
 	.next {
-		font-size: 0.95rem;
-		opacity: 0.6;
+		font-size: clamp(1rem, 1.4vw, 1.2rem);
+		color: #4a5568;
 		text-align: center;
 		padding: 0 1rem;
+		font-weight: 600;
 	}
 
 	.controls {
 		display: flex;
-		gap: 0.75rem;
+		gap: 0.85rem;
 		flex-wrap: wrap;
 		justify-content: center;
 		padding-bottom: 0.5rem;
 	}
 	button {
-		font-size: 1.1rem;
-		padding: 0.85rem 1.6rem;
-		border-radius: 12px;
-		border: 1px solid #444;
-		background: #1a1a1a;
-		color: #eee;
+		font-size: 1.25rem;
+		padding: 0.95rem 1.8rem;
+		border-radius: 14px;
+		border: 1.5px solid #cbd5e0;
+		background: #fff;
+		color: #15202b;
 		cursor: pointer;
-		transition: transform 0.05s, background 0.15s;
+		font-weight: 600;
+		transition: transform 0.05s, background 0.15s, box-shadow 0.15s;
+		box-shadow: 0 1px 2px rgba(20, 30, 50, 0.05);
 	}
-	button:hover { background: #2a2a2a; }
+	button:hover { background: #f0f3f8; box-shadow: 0 2px 6px rgba(20, 30, 50, 0.1); }
 	button:active { transform: scale(0.97); }
 	button.primary {
-		background: #d33;
-		border-color: #d33;
+		background: #d12222;
+		border-color: #d12222;
 		color: #fff;
-		font-weight: 700;
-		min-width: 8rem;
+		font-weight: 800;
+		font-size: 1.35rem;
+		min-width: 10rem;
 	}
+	button.primary:hover { background: #e63232; }
 
 	.sensor-bar {
 		display: flex;
@@ -414,37 +452,37 @@
 		flex-wrap: wrap;
 		justify-content: center;
 		padding: 0 0.5rem;
-		font-size: 0.9rem;
+		font-size: 1rem;
 	}
 	.sensor-btn {
-		font-size: 0.9rem;
-		padding: 0.45rem 0.8rem;
+		font-size: 1rem;
+		padding: 0.5rem 0.95rem;
+		font-weight: 600;
 		min-width: 0;
 	}
 	.sensor-btn.connected {
-		background: #1d3a1d;
-		border-color: #3a9d23;
-		color: #cdf3c0;
+		background: #e4f6ed;
+		border-color: #15806d;
+		color: #0e5547;
 		font-variant-numeric: tabular-nums;
 	}
 	.sensor-btn.connecting {
-		background: #2a2400;
-		border-color: #e6a23c;
-		color: #ffd991;
+		background: #fff3dc;
+		border-color: #b56b00;
+		color: #6b3f00;
 	}
 	.sensor-btn.error {
-		background: #3a0d0d;
-		border-color: #d33;
-		color: #ffb8b8;
+		background: #ffe1e1;
+		border-color: #d12222;
+		color: #7a1212;
 	}
 	.ble-unsupported {
-		opacity: 0.55;
-		font-size: 0.8rem;
+		color: #4a5568;
+		font-size: 0.9rem;
 	}
 	.sensor-err {
-		font-size: 0.8rem;
-		color: #ff9c9c;
-		opacity: 0.8;
+		font-size: 0.9rem;
+		color: #c92020;
 	}
 	.gpx-row {
 		display: flex;
@@ -455,69 +493,75 @@
 		background: #2e7cd6;
 		border-color: #2e7cd6;
 		color: #fff;
-		font-weight: 600;
+		font-weight: 700;
+		font-size: 1.2rem;
 	}
 	.gpx-btn:hover { background: #3a8cdf; }
 
 	.list {
 		overflow-y: auto;
-		padding: 0.5rem 0.75rem 2rem;
-		border-left: 1px solid #222;
+		padding: 0.75rem 1rem 2.5rem;
+		border-left: 1px solid #d8dde6;
 		min-height: 0;
+		background: rgba(255, 255, 255, 0.65);
+		border-radius: 12px;
 	}
 	.list h2 {
 		margin: 0 0 0.75rem;
-		font-size: 1.05rem;
+		font-size: 1.2rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: #aaa;
+		color: #4a5568;
 	}
 	.section-block { margin-bottom: 1rem; }
 	.section-block h3 {
-		margin: 0 0 0.4rem;
-		font-size: 0.9rem;
-		color: #d6c34a;
+		margin: 0 0 0.5rem;
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: #2e7cd6;
 		text-transform: none;
 		letter-spacing: 0;
 	}
-	ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+	ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
 	.row {
 		display: grid;
-		grid-template-columns: 50px 60px 1fr;
+		grid-template-columns: 60px 70px 1fr;
 		grid-template-rows: auto auto;
 		align-items: center;
-		gap: 0 0.5rem;
-		padding: 0.45rem 0.6rem;
-		border-radius: 8px;
-		background: #181818;
-		border-left: 4px solid #333;
-		font-size: 0.92rem;
+		gap: 0 0.6rem;
+		padding: 0.6rem 0.8rem;
+		border-radius: 10px;
+		background: #fff;
+		border-left: 5px solid #cbd5e0;
+		font-size: 1.05rem;
+		box-shadow: 0 1px 2px rgba(20, 30, 50, 0.04);
 	}
-	.row.k-work { border-left-color: #d33; }
-	.row.k-rest { border-left-color: #2a9; }
-	.row.k-prep { border-left-color: #e80; }
-	.row.past { opacity: 0.35; }
+	.row.k-work { border-left-color: #d12222; }
+	.row.k-rest { border-left-color: #15806d; }
+	.row.k-prep { border-left-color: #b56b00; }
+	.row.past { opacity: 0.45; }
 	.row.now {
-		background: #2a2a2a;
-		outline: 2px solid #d6c34a;
-		font-weight: 600;
+		background: #fff7d0;
+		outline: 3px solid #f5c100;
+		font-weight: 700;
+		transform: scale(1.02);
 	}
-	.kind-tag { font-size: 0.78rem; letter-spacing: 0.1em; opacity: 0.85; }
-	.row.k-work .kind-tag { color: #ff8080; }
-	.row.k-rest .kind-tag { color: #6cebd0; }
-	.row.k-prep .kind-tag { color: #ffba75; }
-	.dur { font-family: ui-monospace, monospace; opacity: 0.8; }
-	.lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.kind-tag { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em; }
+	.row.k-work .kind-tag { color: #d12222; }
+	.row.k-rest .kind-tag { color: #15806d; }
+	.row.k-prep .kind-tag { color: #b56b00; }
+	.dur { font-family: ui-monospace, monospace; font-weight: 600; color: #2d3748; }
+	.lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #15202b; }
 	.note-row {
 		grid-column: 2 / 4;
-		font-size: 0.78rem;
-		opacity: 0.55;
-		margin-top: 2px;
+		font-size: 0.9rem;
+		color: #5a6678;
+		margin-top: 3px;
 	}
 
 	@media (max-width: 720px) {
 		main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-		.list { border-left: none; border-top: 1px solid #222; }
+		.list { border-left: none; border-top: 1px solid #d8dde6; }
 		.ring { width: min(100%, 38vh); }
 		.seconds { font-size: clamp(3rem, 14vh, 8rem); }
 	}
