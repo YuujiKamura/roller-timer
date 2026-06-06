@@ -1,19 +1,39 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { TimerState, findPhaseSection } from '$lib/timer.svelte';
-	import { zenkoOniTokkun } from '$lib/presets/zenko';
+	import { presets, findPresetById } from '$lib/presets/index';
 	import { fmtMmSs } from '$lib/types';
-	import { beepCountdown, beepDone, beepPhaseChange, primeAudio } from '$lib/audio';
+	import { beepCountdown, beepDone, beepPhaseChange, beepTick, isMuted, primeAudio, setMuted } from '$lib/audio';
 
-	const timer = new TimerState(zenkoOniTokkun);
+	const STORAGE_PRESET = 'tabata.preset';
+	const STORAGE_MUTE = 'tabata.muted';
+
+	const timer = new TimerState(presets[0]);
+	let presetId = $state(presets[0].id);
+	let muted = $state(false);
 
 	timer.onTick = (t) => {
 		if (t.remaining > 0 && t.remaining <= 3) beepCountdown();
+		else if (t.remaining > 3) beepTick();
 	};
 	timer.onPhaseChange = (_prev, next) => {
-		if (next) beepPhaseChange();
+		if (next) beepPhaseChange(next.kind);
 	};
 	timer.onDone = () => beepDone();
+
+	function selectPreset(id: string) {
+		const w = findPresetById(id);
+		if (!w) return;
+		presetId = id;
+		timer.load(w);
+		try { localStorage.setItem(STORAGE_PRESET, id); } catch { /* ignore */ }
+	}
+
+	function toggleMute() {
+		muted = !muted;
+		setMuted(muted);
+		try { localStorage.setItem(STORAGE_MUTE, muted ? '1' : '0'); } catch { /* ignore */ }
+	}
 
 	let listEl: HTMLDivElement | undefined = $state();
 
@@ -63,6 +83,12 @@
 
 	onMount(() => {
 		document.addEventListener('keydown', onKey);
+		try {
+			const savedId = localStorage.getItem(STORAGE_PRESET);
+			if (savedId) selectPreset(savedId);
+			const savedMute = localStorage.getItem(STORAGE_MUTE);
+			if (savedMute === '1') { muted = true; setMuted(true); }
+		} catch { /* ignore */ }
 	});
 	onDestroy(() => {
 		document.removeEventListener('keydown', onKey);
@@ -80,8 +106,22 @@
 
 <main class={timer.current ? kindClass(timer.current.kind) : 'k-done'}>
 	<section class="timer">
+		<div class="topbar">
+			<select
+				class="preset-select"
+				value={presetId}
+				onchange={(e) => selectPreset((e.currentTarget as HTMLSelectElement).value)}
+				disabled={timer.status === 'running' || timer.status === 'paused'}
+			>
+				{#each presets as p (p.id)}
+					<option value={p.id}>{p.name}</option>
+				{/each}
+			</select>
+			<button class="mute" onclick={toggleMute} aria-label={muted ? 'ミュート解除' : 'ミュート'}>
+				{muted ? '🔇' : '🔊'}
+			</button>
+		</div>
 		<div class="meta">
-			<div class="workout-name">{timer.workout.name}</div>
 			<div class="section">{sectionPhaseLabel}</div>
 		</div>
 
@@ -187,11 +227,35 @@
 		min-height: 0;
 		overflow: hidden;
 	}
+	.topbar {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		padding: 0 0.25rem;
+	}
+	.preset-select {
+		flex: 1 1 auto;
+		max-width: 22rem;
+		background: #1a1a1a;
+		color: #eee;
+		border: 1px solid #444;
+		border-radius: 8px;
+		padding: 0.45rem 0.6rem;
+		font-size: 0.95rem;
+		cursor: pointer;
+	}
+	.preset-select:disabled { opacity: 0.5; cursor: not-allowed; }
+	.mute {
+		font-size: 1.1rem;
+		padding: 0.4rem 0.7rem;
+		min-width: 0;
+	}
 	.meta {
 		text-align: center;
 		opacity: 0.75;
 	}
-	.workout-name { font-size: 0.85rem; letter-spacing: 0.1em; }
 	.section { font-size: 0.95rem; margin-top: 0.15rem; }
 
 	.kind {
