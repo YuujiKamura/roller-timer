@@ -1,11 +1,11 @@
 import type { Workout } from '../types';
-import { zenkoOniTokkun } from './zenko';
-import { tabataClassic, zenkoPyramidOnly, zenkoSpinOnly } from './standard';
+import { rollerPyramidFull } from './roller';
+import { tabataClassic, rollerPyramidCore, rollerHighCadence } from './standard';
 
 export const presets: Workout[] = [
-	zenkoOniTokkun,
-	zenkoPyramidOnly,
-	zenkoSpinOnly,
+	rollerPyramidFull,
+	rollerPyramidCore,
+	rollerHighCadence,
 	tabataClassic
 ];
 
@@ -13,4 +13,4 @@ export function findPresetById(id: string): Workout | undefined {
 	return presets.find((p) => p.id === id);
 }
 
-export { zenkoOniTokkun };
+export { rollerPyramidFull };

@@ -1,8 +1,8 @@
 import type { Workout } from '../types';
 
-export const zenkoOniTokkun: Workout = {
-	id: 'zenko-oni-tokkun',
-	name: 'ZENKO 鬼特訓',
+export const rollerPyramidFull: Workout = {
+	id: 'roller-pyramid-full',
+	name: 'ローラー 20分メニュー',
 	sections: [
 		{
 			name: 'ウォーミングアップ',

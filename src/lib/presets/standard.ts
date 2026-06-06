@@ -17,9 +17,9 @@ export const tabataClassic: Workout = {
 	]
 };
 
-export const zenkoPyramidOnly: Workout = {
-	id: 'zenko-pyramid-only',
-	name: 'ZENKO ピラミッドだけ',
+export const rollerPyramidCore: Workout = {
+	id: 'roller-pyramid-core',
+	name: 'ローラー ピラミッドだけ',
 	sections: [
 		{
 			name: 'ピラミッド (ベース+3)',
@@ -40,9 +40,9 @@ export const zenkoPyramidOnly: Workout = {
 	]
 };
 
-export const zenkoSpinOnly: Workout = {
-	id: 'zenko-spin-only',
-	name: 'ZENKO 高回転だけ',
+export const rollerHighCadence: Workout = {
+	id: 'roller-high-cadence',
+	name: 'ローラー 高回転だけ',
 	sections: [
 		{
 			name: '高回転',

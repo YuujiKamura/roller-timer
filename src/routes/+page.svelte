@@ -101,7 +101,7 @@
 </script>
 
 <svelte:head>
-	<title>Tabata Timer — ZENKO 鬼特訓</title>
+	<title>Tabata Timer — {timer.workout.name}</title>
 </svelte:head>
 
 <main class={timer.current ? kindClass(timer.current.kind) : 'k-done'}>
