@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { TimerState, findPhaseSection } from '$lib/timer.svelte';
-	import { presets, findPresetById } from '$lib/presets/index';
+	import { presets } from '$lib/presets/index';
+	import { loadCustomWorkouts, parseWorkout, saveCustomWorkouts, serializeWorkout, WorkoutParseError } from '$lib/presets/io';
 	import { fmtMmSs } from '$lib/types';
 	import { beepCountdown, beepDone, beepPhaseChange, beepTick, getMasterVolume, primeAudio, setMasterVolume, setMuted } from '$lib/audio';
 	import { sensorStore } from '$lib/sensors/store.svelte';
@@ -17,6 +18,14 @@
 	let presetId = $state(presets[0].id);
 	let muted = $state(false);
 	let volume = $state(getMasterVolume());
+	let customWorkouts = $state<typeof presets>([]);
+	let ioOpen = $state(false);
+	let ioMode = $state<'export' | 'import'>('export');
+	let ioText = $state('');
+	let ioError = $state<string | null>(null);
+	let ioCopied = $state(false);
+
+	const allPresets = $derived([...presets, ...customWorkouts]);
 
 	function handleVolume(e: Event) {
 		const v = Number((e.currentTarget as HTMLInputElement).value) / 100;
@@ -42,11 +51,54 @@
 	};
 
 	function selectPreset(id: string) {
-		const w = findPresetById(id);
+		const w = allPresets.find((p) => p.id === id);
 		if (!w) return;
 		presetId = id;
 		timer.load(w);
 		try { localStorage.setItem(STORAGE_PRESET, id); } catch { /* ignore */ }
+	}
+
+	function openExport() {
+		const current = allPresets.find((p) => p.id === presetId);
+		if (!current) return;
+		ioMode = 'export';
+		ioText = serializeWorkout(current);
+		ioError = null;
+		ioCopied = false;
+		ioOpen = true;
+		try {
+			navigator.clipboard?.writeText(ioText).then(() => { ioCopied = true; }, () => {});
+		} catch { /* ignore */ }
+	}
+
+	function openImport() {
+		ioMode = 'import';
+		ioText = '';
+		ioError = null;
+		ioCopied = false;
+		ioOpen = true;
+	}
+
+	function commitImport() {
+		try {
+			const w = parseWorkout(ioText);
+			const idx = customWorkouts.findIndex((c) => c.id === w.id);
+			const next = customWorkouts.slice();
+			if (idx >= 0) next[idx] = w; else next.push(w);
+			customWorkouts = next;
+			saveCustomWorkouts(next);
+			selectPreset(w.id);
+			ioOpen = false;
+		} catch (e) {
+			ioError = e instanceof WorkoutParseError ? e.message : String(e);
+		}
+	}
+
+	function deleteCustom(id: string) {
+		const next = customWorkouts.filter((c) => c.id !== id);
+		customWorkouts = next;
+		saveCustomWorkouts(next);
+		if (presetId === id) selectPreset(presets[0].id);
 	}
 
 	function toggleMute() {
@@ -116,6 +168,7 @@
 		document.addEventListener('keydown', onKey);
 		bleSupported = isWebBluetoothSupported();
 		try {
+			customWorkouts = loadCustomWorkouts();
 			const savedId = localStorage.getItem(STORAGE_PRESET);
 			if (savedId) selectPreset(savedId);
 			const savedMute = localStorage.getItem(STORAGE_MUTE);
@@ -123,7 +176,7 @@
 			const savedVol = localStorage.getItem(STORAGE_VOLUME);
 			if (savedVol) {
 				const v = Number(savedVol);
-				if (Number.isFinite(v) && v >= 0 && v <= 1) {
+				if (Number.isFinite(v) && v >= 0 && v <= 3) {
 					volume = v;
 					setMasterVolume(v);
 				}
@@ -168,10 +221,12 @@
 				onchange={(e) => selectPreset((e.currentTarget as HTMLSelectElement).value)}
 				disabled={timer.status === 'running' || timer.status === 'paused'}
 			>
-				{#each presets as p (p.id)}
+				{#each allPresets as p (p.id)}
 					<option value={p.id}>{p.name}</option>
 				{/each}
 			</select>
+			<button class="io-btn" onclick={openExport} aria-label="エクスポート" title="現プリセットをエクスポート">📤</button>
+			<button class="io-btn" onclick={openImport} aria-label="インポート" title="JSON をインポート">📥</button>
 			<button class="mute" onclick={toggleMute} aria-label={muted ? 'ミュート解除' : 'ミュート'}>
 				{muted ? '🔇' : '🔊'}
 			</button>
@@ -186,6 +241,40 @@
 				aria-label="音量"
 			/>
 		</div>
+
+		{#if ioOpen}
+			<div class="io-panel">
+				<div class="io-head">
+					<strong>{ioMode === 'export' ? 'エクスポート' : 'インポート'}</strong>
+					{#if ioMode === 'export' && ioCopied}<span class="io-hint">クリップボードにコピー済</span>{/if}
+					<button class="io-close" onclick={() => (ioOpen = false)} aria-label="閉じる">✕</button>
+				</div>
+				<textarea
+					class="io-text"
+					rows="10"
+					bind:value={ioText}
+					placeholder={ioMode === 'import' ? 'ここに JSON を貼り付けてください' : ''}
+					readonly={ioMode === 'export'}
+				></textarea>
+				{#if ioError}<div class="io-err">{ioError}</div>{/if}
+				{#if ioMode === 'import'}
+					<div class="io-actions">
+						<button onclick={commitImport}>読込</button>
+					</div>
+				{/if}
+				{#if customWorkouts.length > 0}
+					<div class="io-customs">
+						<div class="io-customs-title">保存済みカスタム</div>
+						{#each customWorkouts as cw (cw.id)}
+							<div class="io-custom-row">
+								<span>{cw.name}</span>
+								<button onclick={() => deleteCustom(cw.id)} aria-label="削除">削除</button>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 		<div class="meta">
 			<div class="section">{sectionPhaseLabel}</div>
 		</div>
@@ -525,6 +614,81 @@
 	}
 	.tcx-btn:hover:not(:disabled) { background: #3a8cdf; }
 	.tcx-btn:disabled { background: #cbd5e0; border-color: #cbd5e0; color: #fff; cursor: not-allowed; }
+
+	.io-btn {
+		background: none;
+		border: 1px solid #c4cbda;
+		border-radius: 6px;
+		padding: 0.15rem 0.45rem;
+		font-size: 1rem;
+		cursor: pointer;
+		line-height: 1;
+	}
+	.io-btn:hover { background: #eef2f8; }
+	.io-panel {
+		margin: 0.5rem 0;
+		padding: 0.6rem 0.7rem;
+		background: rgba(255, 255, 255, 0.9);
+		border: 1px solid #c4cbda;
+		border-radius: 8px;
+		font-size: 0.85rem;
+	}
+	.io-head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.4rem;
+	}
+	.io-hint { color: #2e7cd6; font-size: 0.75rem; }
+	.io-close {
+		margin-left: auto;
+		background: none;
+		border: none;
+		font-size: 1rem;
+		cursor: pointer;
+		padding: 0 0.3rem;
+	}
+	.io-text {
+		width: 100%;
+		font-family: ui-monospace, Menlo, Consolas, monospace;
+		font-size: 0.78rem;
+		border: 1px solid #d8dde6;
+		border-radius: 6px;
+		padding: 0.4rem;
+		box-sizing: border-box;
+		resize: vertical;
+	}
+	.io-err {
+		color: #c92020;
+		margin-top: 0.4rem;
+		font-size: 0.78rem;
+		white-space: pre-wrap;
+	}
+	.io-actions { margin-top: 0.4rem; display: flex; gap: 0.4rem; }
+	.io-actions button {
+		padding: 0.25rem 0.8rem;
+		background: #2e7cd6;
+		color: #fff;
+		border: 1px solid #2e7cd6;
+		border-radius: 6px;
+		cursor: pointer;
+	}
+	.io-customs { margin-top: 0.6rem; border-top: 1px solid #e0e4ec; padding-top: 0.4rem; }
+	.io-customs-title { font-size: 0.75rem; color: #5a6473; margin-bottom: 0.3rem; }
+	.io-custom-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.15rem 0;
+	}
+	.io-custom-row button {
+		padding: 0.1rem 0.5rem;
+		font-size: 0.75rem;
+		background: none;
+		border: 1px solid #c4cbda;
+		border-radius: 4px;
+		cursor: pointer;
+	}
 
 	.list {
 		overflow-y: auto;
