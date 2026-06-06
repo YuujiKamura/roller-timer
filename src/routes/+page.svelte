@@ -94,6 +94,34 @@
 		}
 	}
 
+	function downloadCurrentJson() {
+		const current = allPresets.find((p) => p.id === presetId);
+		if (!current) return;
+		const blob = new Blob([serializeWorkout(current)], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const safe = current.name.replace(/[\\/:*?"<>|]/g, '_');
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${safe}.workout.json`;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
+	}
+
+	function handleImportFile(e: Event) {
+		const file = (e.currentTarget as HTMLInputElement).files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			ioText = String(reader.result ?? '');
+			commitImport();
+		};
+		reader.onerror = () => { ioError = 'ファイル読込に失敗しました'; };
+		reader.readAsText(file);
+		(e.currentTarget as HTMLInputElement).value = '';
+	}
+
 	function deleteCustom(id: string) {
 		const next = customWorkouts.filter((c) => c.id !== id);
 		customWorkouts = next;
@@ -672,15 +700,19 @@
 		font-size: 0.78rem;
 		white-space: pre-wrap;
 	}
-	.io-actions { margin-top: 0.4rem; display: flex; gap: 0.4rem; }
-	.io-actions button {
+	.io-actions { margin-top: 0.4rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+	.io-actions button,
+	.io-file-label {
 		padding: 0.25rem 0.8rem;
 		background: #2e7cd6;
 		color: #fff;
 		border: 1px solid #2e7cd6;
 		border-radius: 6px;
 		cursor: pointer;
+		font-size: 0.85rem;
+		display: inline-block;
 	}
+	.io-file-label:hover { background: #3a8cdf; }
 	.io-customs { margin-top: 0.6rem; border-top: 1px solid #e0e4ec; padding-top: 0.4rem; }
 	.io-customs-title { font-size: 0.75rem; color: #5a6473; margin-bottom: 0.3rem; }
 	.io-custom-row {
