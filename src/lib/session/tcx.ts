@@ -121,7 +121,7 @@ export function downloadTcx(session: RecordedSession): void {
 	const ymd = new Date(session.startedAt).toISOString().slice(0, 19).replace(/[:T]/g, '-');
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = `tabata-${safeName}-${ymd}.tcx`;
+	a.download = `roller-${safeName}-${ymd}.tcx`;
 	document.body.appendChild(a);
 	a.click();
 	a.remove();

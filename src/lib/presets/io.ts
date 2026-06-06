@@ -61,7 +61,7 @@ export function parseWorkout(text: string): Workout {
 	return { id: raw.id, name: raw.name, sections };
 }
 
-const STORAGE_KEY = 'tabata.customWorkouts.v1';
+const STORAGE_KEY = 'roller.customWorkouts.v1';
 
 export function loadCustomWorkouts(): Workout[] {
 	try {

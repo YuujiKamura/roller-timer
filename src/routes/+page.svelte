@@ -10,9 +10,9 @@
 	import { hasUsefulSamples, sessionRecorder } from '$lib/session/recorder.svelte';
 	import { downloadTcx } from '$lib/session/tcx';
 
-	const STORAGE_PRESET = 'tabata.preset';
-	const STORAGE_MUTE = 'tabata.muted';
-	const STORAGE_VOLUME = 'tabata.volume';
+	const STORAGE_PRESET = 'roller.preset';
+	const STORAGE_MUTE = 'roller.muted';
+	const STORAGE_VOLUME = 'roller.volume';
 
 	const timer = new TimerState(presets[0]);
 	let presetId = $state(presets[0].id);
@@ -196,6 +196,19 @@
 		document.addEventListener('keydown', onKey);
 		bleSupported = isWebBluetoothSupported();
 		try {
+			const KEY_MAP = [
+				['tabata.preset', 'roller.preset'],
+				['tabata.muted', 'roller.muted'],
+				['tabata.volume', 'roller.volume'],
+				['tabata.lastFtmsDeviceId', 'roller.lastFtmsDeviceId'],
+				['tabata.lastHrmDeviceId', 'roller.lastHrmDeviceId'],
+				['tabata.customWorkouts.v1', 'roller.customWorkouts.v1']
+			] as const;
+			for (const [oldK, newK] of KEY_MAP) {
+				if (localStorage.getItem(newK) !== null) continue;
+				const v = localStorage.getItem(oldK);
+				if (v !== null) localStorage.setItem(newK, v);
+			}
 			customWorkouts = loadCustomWorkouts();
 			const savedId = localStorage.getItem(STORAGE_PRESET);
 			if (savedId) selectPreset(savedId);
@@ -237,7 +250,7 @@
 </script>
 
 <svelte:head>
-	<title>Tabata Timer — {timer.workout.name}</title>
+	<title>ローラータイマー — {timer.workout.name}</title>
 </svelte:head>
 
 <main class={timer.current ? kindClass(timer.current.kind) : 'k-done'}>

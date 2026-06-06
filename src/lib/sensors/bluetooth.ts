@@ -1,4 +1,4 @@
-// Web Bluetooth クライアント。 fujihc-trainer web/lib/ble_client.js を Tabata Timer 用に
+// Web Bluetooth クライアント。 fujihc-trainer web/lib/ble_client.js をローラータイマー用に
 // 簡素化したもの (viewer dispatch interface を廃し、 store を直接更新)。
 // FTMS handshake / HRM notify / auto reconnect の core はそのまま使う。
 
@@ -14,8 +14,8 @@ const HEART_RATE_MEASUREMENT_CHAR = 0x2a37;
 const FTMS_OP_REQUEST_CONTROL = 0x00;
 const FTMS_OP_RESET = 0x01;
 
-const LS_KEY_FTMS = 'tabata.lastFtmsDeviceId';
-const LS_KEY_HRM = 'tabata.lastHrmDeviceId';
+const LS_KEY_FTMS = 'roller.lastFtmsDeviceId';
+const LS_KEY_HRM = 'roller.lastHrmDeviceId';
 
 type BTDevice = BluetoothDevice;
 type BTServer = BluetoothRemoteGATTServer;

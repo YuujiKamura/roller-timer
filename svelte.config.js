@@ -9,7 +9,7 @@ const config = {
 	},
 	kit: {
 		adapter: adapter({ fallback: 'index.html' }),
-		paths: { base: dev ? '' : '/tabata-timer' }
+		paths: { base: dev ? '' : '/roller-timer' }
 	}
 };
 
