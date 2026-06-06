@@ -179,7 +179,7 @@
 				class="volume"
 				type="range"
 				min="0"
-				max="100"
+				max="300"
 				step="5"
 				value={Math.round(volume * 100)}
 				oninput={handleVolume}

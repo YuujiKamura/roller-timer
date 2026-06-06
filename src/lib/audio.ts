@@ -29,7 +29,7 @@ function tone(opts: {
 	if (muted) return;
 	const c = ensureCtx();
 	if (!c) return;
-	const vol = Math.max(0, Math.min(1, opts.volume * masterVolume));
+	const vol = Math.max(0, Math.min(3, opts.volume * masterVolume));
 	if (vol <= 0) return;
 	const osc = c.createOscillator();
 	const gain = c.createGain();
@@ -99,7 +99,7 @@ export function isMuted() {
 }
 
 export function setMasterVolume(v: number) {
-	masterVolume = Math.max(0, Math.min(1, v));
+	masterVolume = Math.max(0, Math.min(3, v));
 }
 
 export function getMasterVolume() {
