@@ -240,6 +240,7 @@
 				oninput={handleVolume}
 				aria-label="音量"
 			/>
+			<span class="volume-pct">{Math.round(volume * 100)}%</span>
 		</div>
 
 		{#if ioOpen}
@@ -614,6 +615,13 @@
 	}
 	.tcx-btn:hover:not(:disabled) { background: #3a8cdf; }
 	.tcx-btn:disabled { background: #cbd5e0; border-color: #cbd5e0; color: #fff; cursor: not-allowed; }
+
+	.volume-pct {
+		font-size: 0.75rem;
+		color: #5a6473;
+		min-width: 3em;
+		text-align: right;
+	}
 
 	.io-btn {
 		background: none;
