@@ -3,7 +3,11 @@
 	import { TimerState, findPhaseSection } from '$lib/timer.svelte';
 	import { presets, findPresetById } from '$lib/presets/index';
 	import { fmtMmSs } from '$lib/types';
-	import { beepCountdown, beepDone, beepPhaseChange, beepTick, isMuted, primeAudio, setMuted } from '$lib/audio';
+	import { beepCountdown, beepDone, beepPhaseChange, beepTick, primeAudio, setMuted } from '$lib/audio';
+	import { sensorStore } from '$lib/sensors/store.svelte';
+	import { connectFtms, connectHrm, disconnectFtms, disconnectHrm, isWebBluetoothSupported, tryAutoReconnect } from '$lib/sensors/bluetooth';
+	import { hasUsefulSamples, sessionRecorder } from '$lib/session/recorder.svelte';
+	import { downloadGpx } from '$lib/session/gpx';
 
 	const STORAGE_PRESET = 'tabata.preset';
 	const STORAGE_MUTE = 'tabata.muted';
@@ -11,15 +15,22 @@
 	const timer = new TimerState(presets[0]);
 	let presetId = $state(presets[0].id);
 	let muted = $state(false);
+	const sensors = sensorStore;
+	const recorder = sessionRecorder;
+	let bleSupported = $state(false);
 
 	timer.onTick = (t) => {
 		if (t.remaining > 0 && t.remaining <= 3) beepCountdown();
 		else if (t.remaining > 3) beepTick();
+		recorder.tick();
 	};
 	timer.onPhaseChange = (_prev, next) => {
 		if (next) beepPhaseChange(next.kind);
 	};
-	timer.onDone = () => beepDone();
+	timer.onDone = () => {
+		beepDone();
+		recorder.finish();
+	};
 
 	function selectPreset(id: string) {
 		const w = findPresetById(id);
@@ -39,11 +50,23 @@
 
 	function handleStart() {
 		primeAudio();
-		if (timer.status === 'paused') timer.resume();
-		else if (timer.status === 'done') {
+		if (timer.status === 'paused') {
+			timer.resume();
+		} else if (timer.status === 'done') {
 			timer.reset();
+			recorder.start(timer.workout);
 			timer.start();
-		} else timer.start();
+		} else if (timer.status === 'idle') {
+			recorder.start(timer.workout);
+			timer.start();
+		} else {
+			timer.start();
+		}
+	}
+
+	function handleReset() {
+		timer.reset();
+		recorder.reset();
 	}
 
 	const kindLabel: Record<string, string> = { prep: 'PREP', work: 'WORK', rest: 'REST' };
@@ -83,12 +106,14 @@
 
 	onMount(() => {
 		document.addEventListener('keydown', onKey);
+		bleSupported = isWebBluetoothSupported();
 		try {
 			const savedId = localStorage.getItem(STORAGE_PRESET);
 			if (savedId) selectPreset(savedId);
 			const savedMute = localStorage.getItem(STORAGE_MUTE);
 			if (savedMute === '1') { muted = true; setMuted(true); }
 		} catch { /* ignore */ }
+		if (bleSupported) tryAutoReconnect();
 	});
 	onDestroy(() => {
 		document.removeEventListener('keydown', onKey);
@@ -161,8 +186,50 @@
 				</button>
 			{/if}
 			<button onclick={() => timer.skip()}>スキップ</button>
-			<button onclick={() => timer.reset()}>リセット</button>
+			<button onclick={handleReset}>リセット</button>
 		</div>
+
+		<div class="sensor-bar">
+			{#if !bleSupported}
+				<span class="ble-unsupported">このブラウザは Bluetooth 非対応 (Chrome / Edge / Android Chrome なら使えます)</span>
+			{:else}
+				<button
+					class="sensor-btn {sensors.ftmsStatus}"
+					onclick={() => sensors.ftmsStatus === 'connected' ? disconnectFtms() : connectFtms()}
+				>
+					{#if sensors.ftmsStatus === 'connected'}
+						⚙ パワー {sensors.power.powerW ?? '—'}W ・ 回転 {sensors.power.cadenceRpm ? Math.round(sensors.power.cadenceRpm) : '—'}
+					{:else if sensors.ftmsStatus === 'connecting'}
+						⚙ 接続中…
+					{:else}
+						⚙ トレーナー接続
+					{/if}
+				</button>
+				<button
+					class="sensor-btn {sensors.hrStatus}"
+					onclick={() => sensors.hrStatus === 'connected' ? disconnectHrm() : connectHrm()}
+				>
+					{#if sensors.hrStatus === 'connected'}
+						♥ {sensors.hr.hrBpm ?? '—'} bpm
+					{:else if sensors.hrStatus === 'connecting'}
+						♥ 接続中…
+					{:else}
+						♥ 心拍接続
+					{/if}
+				</button>
+			{/if}
+			{#if sensors.lastError}
+				<span class="sensor-err">{sensors.lastError}</span>
+			{/if}
+		</div>
+
+		{#if timer.status === 'done' && hasUsefulSamples(recorder.completed)}
+			<div class="gpx-row">
+				<button class="gpx-btn" onclick={() => recorder.completed && downloadGpx(recorder.completed)}>
+					GPX をダウンロード ({recorder.completed?.samples.length}秒分)
+				</button>
+			</div>
+		{/if}
 	</section>
 
 	<aside class="list" bind:this={listEl}>
@@ -340,6 +407,57 @@
 		font-weight: 700;
 		min-width: 8rem;
 	}
+
+	.sensor-bar {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		justify-content: center;
+		padding: 0 0.5rem;
+		font-size: 0.9rem;
+	}
+	.sensor-btn {
+		font-size: 0.9rem;
+		padding: 0.45rem 0.8rem;
+		min-width: 0;
+	}
+	.sensor-btn.connected {
+		background: #1d3a1d;
+		border-color: #3a9d23;
+		color: #cdf3c0;
+		font-variant-numeric: tabular-nums;
+	}
+	.sensor-btn.connecting {
+		background: #2a2400;
+		border-color: #e6a23c;
+		color: #ffd991;
+	}
+	.sensor-btn.error {
+		background: #3a0d0d;
+		border-color: #d33;
+		color: #ffb8b8;
+	}
+	.ble-unsupported {
+		opacity: 0.55;
+		font-size: 0.8rem;
+	}
+	.sensor-err {
+		font-size: 0.8rem;
+		color: #ff9c9c;
+		opacity: 0.8;
+	}
+	.gpx-row {
+		display: flex;
+		justify-content: center;
+		padding-bottom: 0.5rem;
+	}
+	.gpx-btn {
+		background: #2e7cd6;
+		border-color: #2e7cd6;
+		color: #fff;
+		font-weight: 600;
+	}
+	.gpx-btn:hover { background: #3a8cdf; }
 
 	.list {
 		overflow-y: auto;
