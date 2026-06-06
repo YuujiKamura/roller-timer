@@ -10,7 +10,8 @@ export const rollerPyramidFull: Workout = {
 		{
 			name: 'ウォーミングアップ',
 			phases: [
-				{ kind: 'work', durationSec: 60, label: 'ベース+1 (重)', note: 'ベースギアを基準に 1 枚重く。 上から下まで長くベタっと踏む' },
+				{ kind: 'prep', durationSec: 60, label: 'ベースギア決め', note: '手の圧が消えて足に乗る重さ、 これがベース' },
+				{ kind: 'work', durationSec: 60, label: 'ベース+1 (重)', note: 'ベースから 1 枚重く。 上から下まで長くベタっと踏む' },
 				{ kind: 'rest', durationSec: 60, label: 'ベース-1 (軽)' },
 				{ kind: 'work', durationSec: 60, label: 'ベース+2 (重)', note: '少し前に座り、 フォームを意識' },
 				{ kind: 'rest', durationSec: 60, label: 'ベース-2 (軽)' },
@@ -47,7 +48,7 @@ export const rollerPyramidFull: Workout = {
 		{
 			name: 'クールダウン',
 			phases: [
-				{ kind: 'rest', durationSec: 360, label: 'ゆっくり回して疲れを抜く', note: '足は止めず、 とにかくゆっくりでも回す' }
+				{ kind: 'rest', durationSec: 300, label: 'ゆっくり回して疲れを抜く', note: '足は止めず、 とにかくゆっくりでも回す' }
 			]
 		}
 	]
