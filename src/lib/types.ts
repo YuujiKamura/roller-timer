@@ -5,6 +5,7 @@ export type Phase = {
 	durationSec: number;
 	label?: string;
 	note?: string;
+	zone?: string;
 };
 
 export type Section = {

@@ -5,26 +5,26 @@
     {
       "name": "ウォーミングアップ (L2 から L4 タッチまで)",
       "phases": [
-        { "kind": "work", "durationSec": 120, "label": "L2" },
-        { "kind": "work", "durationSec": 120, "label": "L3" },
-        { "kind": "work", "durationSec": 60, "label": "L3からL4 (心拍を確認し閾値を調整)" }
+        { "kind": "work", "durationSec": 120, "label": "L2", "zone": "L2" },
+        { "kind": "work", "durationSec": 120, "label": "L3", "zone": "L3" },
+        { "kind": "work", "durationSec": 60, "label": "L3からL4 (心拍を確認し閾値を調整)", "zone": "L4" }
       ]
     },
     {
       "name": "SST 本体 (L4 / L3 を 5分ずつ × 3 セット)",
       "phases": [
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 １セット目" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ １セット目" },
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ２セット目" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ ２セット目" },
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ３セット目" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ ３セット目" }
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 １セット目", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ １セット目", "zone": "L3" },
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ２セット目", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ ２セット目", "zone": "L3" },
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ３セット目", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ ３セット目", "zone": "L3" }
       ]
     },
     {
       "name": "クールダウン (3分)",
       "phases": [
-        { "kind": "rest", "durationSec": 300, "label": "L3からL2へ落とす" }
+        { "kind": "rest", "durationSec": 300, "label": "L3からL2へ落とす", "zone": "L2" }
       ]
     }
   ]

@@ -4,6 +4,7 @@
 	import { presets } from '$lib/presets/index';
 	import { loadCustomWorkouts, parseWorkout, saveCustomWorkouts, serializeWorkout, WorkoutParseError } from '$lib/presets/io';
 	import { fmtMmSs } from '$lib/types';
+	import { zoneColor } from '$lib/zones';
 	import { beepCountdown, beepDone, beepPhaseChange, beepTick, getMasterVolume, primeAudio, setMasterVolume, setMuted } from '$lib/audio';
 	import { sensorStore } from '$lib/sensors/store.svelte';
 	import { connectFtms, connectHrm, disconnectFtms, disconnectHrm, isWebBluetoothSupported, tryAutoReconnect } from '$lib/sensors/bluetooth';
@@ -329,7 +330,7 @@
 		</div>
 
 		<div class="kind">{timer.current ? kindLabel[timer.current.kind] : 'DONE'}</div>
-		<div class="label">{timer.current?.label ?? '完了'}</div>
+		<div class="label" style:background-color={zoneColor(timer.current?.zone) ?? null}>{timer.current?.label ?? '完了'}</div>
 		{#if timer.current?.note}
 			<div class="note">{timer.current.note}</div>
 		{/if}
@@ -420,6 +421,7 @@
 						<li
 							data-gi={gi}
 							class="row {kindClass(p.kind)} {gi === timer.idx ? 'now' : ''} {gi < timer.idx ? 'past' : ''}"
+							style:background-color={zoneColor(p.zone) ?? null}
 						>
 							<span class="kind-tag">{kindLabel[p.kind]}</span>
 							<span class="dur">{fmtMmSs(p.durationSec)}</span>
