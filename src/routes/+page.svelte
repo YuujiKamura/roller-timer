@@ -109,8 +109,7 @@
 			e.preventDefault();
 			if (timer.status === 'running') timer.pause();
 			else handleStart();
-		} else if (e.key === 'r' || e.key === 'R') timer.reset();
-		else if (e.key === 'n' || e.key === 'N') timer.skip();
+		} else if (e.key === 'r' || e.key === 'R') handleReset();
 	}
 
 	onMount(() => {
@@ -212,7 +211,6 @@
 					{timer.status === 'paused' ? '再開' : timer.status === 'done' ? 'もう一度' : 'スタート'}
 				</button>
 			{/if}
-			<button onclick={() => timer.skip()}>スキップ</button>
 			<button onclick={handleReset}>リセット</button>
 		</div>
 
