@@ -314,10 +314,12 @@
 	main {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
-		padding: 1rem;
+		grid-template-rows: minmax(0, 100vh);
+		gap: 0.8rem;
+		padding: 0.8rem;
 		height: 100vh;
 		max-height: 100vh;
+		overflow: hidden;
 		transition: background 0.5s;
 	}
 	main.k-work { background: linear-gradient(180deg, #ffd1d1 0%, #f4f6fa 60%); }
@@ -330,8 +332,9 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: flex-start;
-		gap: 0.5rem;
+		gap: 0.35rem;
 		min-height: 0;
+		max-height: 100%;
 		overflow: hidden;
 	}
 	.topbar {
@@ -371,10 +374,10 @@
 	.section { font-size: 1.15rem; font-weight: 600; margin-top: 0.15rem; }
 
 	.kind {
-		font-size: clamp(2.6rem, 6vw, 4rem);
+		font-size: clamp(1.8rem, 4vw, 2.8rem);
 		font-weight: 900;
 		letter-spacing: 0.16em;
-		margin-top: 0.25rem;
+		margin-top: 0.1rem;
 	}
 	main.k-work .kind { color: #d12222; }
 	main.k-rest .kind { color: #15806d; }
@@ -394,14 +397,14 @@
 		width: 100%;
 	}
 	.ring {
-		width: min(100%, 56vh);
+		width: min(100%, 38vh);
 		height: auto;
 		transform: rotate(-90deg);
 	}
-	.ring .track { fill: none; stroke: #e1e6ee; stroke-width: 16; }
+	.ring .track { fill: none; stroke: #e1e6ee; stroke-width: 14; }
 	.ring .prog {
 		fill: none;
-		stroke-width: 16;
+		stroke-width: 14;
 		stroke-linecap: round;
 		transition: stroke-dashoffset 0.95s linear, stroke 0.4s;
 	}
@@ -413,7 +416,7 @@
 	.seconds {
 		position: absolute;
 		font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-		font-size: clamp(5rem, 20vh, 14rem);
+		font-size: clamp(3.5rem, 14vh, 9rem);
 		font-weight: 900;
 		font-variant-numeric: tabular-nums;
 		line-height: 1;
@@ -525,40 +528,41 @@
 
 	.list {
 		overflow-y: auto;
-		padding: 0.75rem 1rem 2.5rem;
+		padding: 0.6rem 0.8rem 1.2rem;
 		border-left: 1px solid #d8dde6;
 		min-height: 0;
+		max-height: 100%;
 		background: rgba(255, 255, 255, 0.65);
 		border-radius: 12px;
 	}
 	.list h2 {
-		margin: 0 0 0.75rem;
-		font-size: 1.2rem;
+		margin: 0 0 0.4rem;
+		font-size: 1rem;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: #4a5568;
 	}
-	.section-block { margin-bottom: 1rem; }
+	.section-block { margin-bottom: 0.5rem; }
 	.section-block h3 {
-		margin: 0 0 0.5rem;
-		font-size: 1.1rem;
+		margin: 0 0 0.3rem;
+		font-size: 0.95rem;
 		font-weight: 800;
 		color: #2e7cd6;
 		text-transform: none;
 		letter-spacing: 0;
 	}
-	ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+	ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3px; }
 	.row {
 		display: grid;
-		grid-template-columns: 60px 70px 1fr;
+		grid-template-columns: 52px 56px 1fr;
 		grid-template-rows: auto auto;
 		align-items: center;
-		gap: 0 0.6rem;
-		padding: 0.6rem 0.8rem;
-		border-radius: 10px;
+		gap: 0 0.5rem;
+		padding: 0.35rem 0.6rem;
+		border-radius: 8px;
 		background: #fff;
-		border-left: 5px solid #cbd5e0;
-		font-size: 1.05rem;
+		border-left: 4px solid #cbd5e0;
+		font-size: 0.92rem;
 		box-shadow: 0 1px 2px rgba(20, 30, 50, 0.04);
 	}
 	.row.k-work { border-left-color: #d12222; }
@@ -567,27 +571,43 @@
 	.row.past { opacity: 0.45; }
 	.row.now {
 		background: #fff7d0;
-		outline: 3px solid #f5c100;
+		outline: 2px solid #f5c100;
 		font-weight: 700;
-		transform: scale(1.02);
 	}
-	.kind-tag { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em; }
+	.kind-tag { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; }
 	.row.k-work .kind-tag { color: #d12222; }
 	.row.k-rest .kind-tag { color: #15806d; }
 	.row.k-prep .kind-tag { color: #b56b00; }
-	.dur { font-family: ui-monospace, monospace; font-weight: 600; color: #2d3748; }
+	.dur { font-family: ui-monospace, monospace; font-weight: 600; color: #2d3748; font-size: 0.92rem; }
 	.lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #15202b; }
 	.note-row {
 		grid-column: 2 / 4;
-		font-size: 0.9rem;
+		font-size: 0.8rem;
 		color: #5a6678;
-		margin-top: 3px;
+		margin-top: 1px;
 	}
 
 	@media (max-width: 720px) {
-		main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+		main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 0.4rem; padding: 0.4rem; }
 		.list { border-left: none; border-top: 1px solid #d8dde6; }
-		.ring { width: min(100%, 38vh); }
-		.seconds { font-size: clamp(3rem, 14vh, 8rem); }
+		.timer { gap: 0.25rem; padding: 0.25rem; }
+		.topbar { gap: 0.4rem; flex-wrap: wrap; }
+		.preset { font-size: 0.85rem; padding: 0.3rem 0.4rem; }
+		.meta { font-size: 0.85rem; }
+		.section { font-size: 0.95rem; margin-top: 0; }
+		.kind { font-size: 1.4rem; margin-top: 0; }
+		.note, .next { display: none; }
+		.label { font-size: 1.1rem; padding: 0 0.4rem; }
+		.ring { width: min(100%, 24vh); }
+		.ring .track, .ring .prog { stroke-width: 12; }
+		.seconds { font-size: clamp(2.4rem, 10vh, 4.5rem); }
+		.controls { gap: 0.4rem; padding-bottom: 0.2rem; }
+		button { font-size: 1rem; padding: 0.5rem 0.9rem; }
+		button.primary { font-size: 1.1rem; min-width: 7rem; }
+		.sensor-cards { gap: 0.3rem; padding: 0; }
+		.card { padding: 0.35rem 0.2rem 0.3rem; border-top-width: 4px; border-width: 1.2px; }
+		.card .v { font-size: 1.3rem; margin: 0.05rem 0; }
+		.card .lbl { font-size: 0.7rem; }
+		.card .u, .card .status { font-size: 0.6rem; }
 	}
 </style>
