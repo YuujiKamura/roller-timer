@@ -1,11 +1,9 @@
 import type { Workout } from '../types';
 import { rollerPyramidFull } from './roller';
-import { tabataClassic, rollerPyramidCore, rollerHighCadence } from './standard';
+import { tabataClassic } from './standard';
 
 export const presets: Workout[] = [
 	rollerPyramidFull,
-	rollerPyramidCore,
-	rollerHighCadence,
 	tabataClassic
 ];
 
