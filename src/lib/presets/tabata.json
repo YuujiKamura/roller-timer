@@ -1,0 +1,39 @@
+{
+  "id": "tabata-classic",
+  "name": "タバタ・プロトコル (オリジナル準拠)",
+  "sections": [
+    {
+      "name": "ウォームアップ",
+      "phases": [
+        { "kind": "prep", "durationSec": 300, "label": "ウォームアップ" }
+      ]
+    },
+    {
+      "name": "タバタ 4 分コア",
+      "phases": [
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 1 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 2 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 3 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 4 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 5 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 6 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 7 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" },
+        { "kind": "work", "durationSec": 20, "label": "ラウンド 8 全力" },
+        { "kind": "rest", "durationSec": 10, "label": "休憩" }
+      ]
+    },
+    {
+      "name": "クールダウン",
+      "phases": [
+        { "kind": "rest", "durationSec": 180, "label": "クールダウン" }
+      ]
+    }
+  ]
+}
