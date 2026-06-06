@@ -139,6 +139,20 @@
 	const ringR = 110;
 	const ringC = 2 * Math.PI * ringR;
 	const dashOffset = $derived(ringC * (1 - timer.progressInPhase()));
+
+	const gpxSampleCount = $derived(
+		recorder.completed?.samples.length ?? recorder.current?.samples.length ?? 0
+	);
+	const gpxAvailable = $derived(gpxSampleCount > 0);
+
+	function toggleFtms() {
+		if (sensors.ftmsStatus === 'connected' || sensors.ftmsStatus === 'connecting') disconnectFtms();
+		else connectFtms();
+	}
+	function toggleHr() {
+		if (sensors.hrStatus === 'connected' || sensors.hrStatus === 'connecting') disconnectHrm();
+		else connectHrm();
+	}
 </script>
 
 <svelte:head>
@@ -212,48 +226,49 @@
 				</button>
 			{/if}
 			<button onclick={handleReset}>リセット</button>
+			<button
+				class="gpx-btn"
+				disabled={!gpxAvailable}
+				onclick={() => {
+					const s = recorder.completed ?? recorder.current;
+					if (s) downloadGpx(s);
+				}}
+				title={gpxAvailable ? 'GPX をダウンロード (Strava にアップロード可)' : 'スタート後に保存できます'}
+			>
+				GPX 保存{gpxSampleCount ? ` (${gpxSampleCount}秒)` : ''}
+			</button>
 		</div>
 
-		<div class="sensor-bar">
-			{#if !bleSupported}
-				<span class="ble-unsupported">このブラウザは Bluetooth 非対応 (Chrome / Edge / Android Chrome なら使えます)</span>
-			{:else}
-				<button
-					class="sensor-btn {sensors.ftmsStatus}"
-					onclick={() => sensors.ftmsStatus === 'connected' ? disconnectFtms() : connectFtms()}
-				>
-					{#if sensors.ftmsStatus === 'connected'}
-						⚙ パワー {sensors.power.powerW ?? '—'}W ・ 回転 {sensors.power.cadenceRpm ? Math.round(sensors.power.cadenceRpm) : '—'}
-					{:else if sensors.ftmsStatus === 'connecting'}
-						⚙ 接続中…
-					{:else}
-						⚙ トレーナー接続
-					{/if}
-				</button>
-				<button
-					class="sensor-btn {sensors.hrStatus}"
-					onclick={() => sensors.hrStatus === 'connected' ? disconnectHrm() : connectHrm()}
-				>
-					{#if sensors.hrStatus === 'connected'}
-						♥ {sensors.hr.hrBpm ?? '—'} bpm
-					{:else if sensors.hrStatus === 'connecting'}
-						♥ 接続中…
-					{:else}
-						♥ 心拍接続
-					{/if}
-				</button>
-			{/if}
-			{#if sensors.lastError}
-				<span class="sensor-err">{sensors.lastError}</span>
-			{/if}
+		<div class="sensor-cards">
+			<button class="card {sensors.ftmsStatus}" onclick={toggleFtms} disabled={!bleSupported}>
+				<div class="lbl">パワー</div>
+				<div class="v">{sensors.ftmsStatus === 'connected' ? (sensors.power.powerW ?? '—') : '—'}</div>
+				<div class="u">W</div>
+				<div class="status">
+					{#if sensors.ftmsStatus === 'connected'}接続中{:else if sensors.ftmsStatus === 'connecting'}接続中…{:else if sensors.ftmsStatus === 'error'}エラー{:else}タップで接続{/if}
+				</div>
+			</button>
+			<button class="card {sensors.ftmsStatus}" onclick={toggleFtms} disabled={!bleSupported}>
+				<div class="lbl">ケイデンス</div>
+				<div class="v">{sensors.ftmsStatus === 'connected' && sensors.power.cadenceRpm != null ? Math.round(sensors.power.cadenceRpm) : '—'}</div>
+				<div class="u">rpm</div>
+				<div class="status">
+					{#if sensors.ftmsStatus === 'connected'}接続中{:else if sensors.ftmsStatus === 'connecting'}接続中…{:else}タップで接続{/if}
+				</div>
+			</button>
+			<button class="card hr {sensors.hrStatus}" onclick={toggleHr} disabled={!bleSupported}>
+				<div class="lbl">心拍</div>
+				<div class="v">{sensors.hrStatus === 'connected' ? (sensors.hr.hrBpm ?? '—') : '—'}</div>
+				<div class="u">bpm</div>
+				<div class="status">
+					{#if sensors.hrStatus === 'connected'}接続中{:else if sensors.hrStatus === 'connecting'}接続中…{:else if sensors.hrStatus === 'error'}エラー{:else}タップで接続{/if}
+				</div>
+			</button>
 		</div>
-
-		{#if timer.status === 'done' && hasUsefulSamples(recorder.completed)}
-			<div class="gpx-row">
-				<button class="gpx-btn" onclick={() => recorder.completed && downloadGpx(recorder.completed)}>
-					GPX をダウンロード ({recorder.completed?.samples.length}秒分)
-				</button>
-			</div>
+		{#if !bleSupported}
+			<div class="ble-unsupported">このブラウザは Bluetooth 非対応 ── Chrome / Edge / Android Chrome なら使えます</div>
+		{:else if sensors.lastError}
+			<div class="sensor-err">{sensors.lastError}</div>
 		{/if}
 	</section>
 
@@ -444,57 +459,69 @@
 	}
 	button.primary:hover { background: #e63232; }
 
-	.sensor-bar {
+	.sensor-cards {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 0.6rem;
+		width: 100%;
+		padding: 0 0.25rem;
+	}
+	.card {
 		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
+		flex-direction: column;
+		align-items: center;
 		justify-content: center;
-		padding: 0 0.5rem;
-		font-size: 1rem;
-	}
-	.sensor-btn {
-		font-size: 1rem;
-		padding: 0.5rem 0.95rem;
-		font-weight: 600;
+		gap: 0;
+		padding: 0.7rem 0.4rem 0.55rem;
+		border-radius: 14px;
+		background: #fff;
+		border: 1.5px solid #cbd5e0;
+		border-top: 6px solid #cbd5e0;
 		min-width: 0;
+		font-size: inherit;
+		font-weight: 600;
+		color: #15202b;
+		cursor: pointer;
+		box-shadow: 0 1px 2px rgba(20, 30, 50, 0.04);
 	}
-	.sensor-btn.connected {
-		background: #e4f6ed;
-		border-color: #15806d;
-		color: #0e5547;
+	.card:hover { background: #f0f3f8; }
+	.card:disabled { opacity: 0.5; cursor: not-allowed; }
+	.card.connected { border-color: #15806d; border-top-color: #15806d; background: #f1fbf6; }
+	.card.connecting { border-color: #b56b00; border-top-color: #b56b00; background: #fff8e8; }
+	.card.error { border-color: #d12222; border-top-color: #d12222; background: #ffefef; }
+	.card.hr { border-top-color: #d12222; }
+	.card.hr.connected { border-top-color: #d12222; }
+	.card .lbl { font-size: 0.95rem; color: #4a5568; font-weight: 700; letter-spacing: 0.04em; }
+	.card .v {
+		font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+		font-size: clamp(2.2rem, 6vw, 3.4rem);
+		font-weight: 900;
+		line-height: 1;
+		margin: 0.2rem 0;
 		font-variant-numeric: tabular-nums;
 	}
-	.sensor-btn.connecting {
-		background: #fff3dc;
-		border-color: #b56b00;
-		color: #6b3f00;
-	}
-	.sensor-btn.error {
-		background: #ffe1e1;
-		border-color: #d12222;
-		color: #7a1212;
-	}
+	.card .u { font-size: 0.9rem; color: #5a6678; }
+	.card .status { font-size: 0.78rem; color: #5a6678; margin-top: 0.25rem; opacity: 0.85; }
 	.ble-unsupported {
 		color: #4a5568;
 		font-size: 0.9rem;
+		text-align: center;
+		padding: 0 0.5rem;
 	}
 	.sensor-err {
 		font-size: 0.9rem;
 		color: #c92020;
-	}
-	.gpx-row {
-		display: flex;
-		justify-content: center;
-		padding-bottom: 0.5rem;
+		text-align: center;
+		padding: 0 0.5rem;
 	}
 	.gpx-btn {
 		background: #2e7cd6;
 		border-color: #2e7cd6;
 		color: #fff;
 		font-weight: 700;
-		font-size: 1.2rem;
 	}
-	.gpx-btn:hover { background: #3a8cdf; }
+	.gpx-btn:hover:not(:disabled) { background: #3a8cdf; }
+	.gpx-btn:disabled { background: #cbd5e0; border-color: #cbd5e0; color: #fff; cursor: not-allowed; }
 
 	.list {
 		overflow-y: auto;
