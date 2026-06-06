@@ -7,7 +7,7 @@ export const tabataClassic: Workout = {
 		{
 			name: 'ウォームアップ',
 			phases: [
-				{ kind: 'prep', durationSec: 300, label: '軽め回転' }
+				{ kind: 'prep', durationSec: 300, label: 'ウォームアップ' }
 			]
 		},
 		{
@@ -22,7 +22,7 @@ export const tabataClassic: Workout = {
 		{
 			name: 'クールダウン',
 			phases: [
-				{ kind: 'rest', durationSec: 180, label: '軽め回転' }
+				{ kind: 'rest', durationSec: 180, label: 'クールダウン' }
 			]
 		}
 	]
