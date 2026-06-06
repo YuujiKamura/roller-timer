@@ -2,7 +2,7 @@ import type { Workout } from '../types';
 
 export const rollerPyramidFull: Workout = {
 	id: 'roller-pyramid-full',
-	name: 'ローラー 20分メニュー',
+	name: 'SFR + 高回転 20分メニュー',
 	sections: [
 		{
 			name: 'ウォーミングアップ',
