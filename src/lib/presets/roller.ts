@@ -19,15 +19,15 @@ export const rollerPyramidFull: Workout = {
 		{
 			name: 'ピラミッド (ベース+3)',
 			phases: [
-				{ kind: 'work', durationSec: 30, label: 'ベース+3 全力もがき' },
+				{ kind: 'work', durationSec: 30, label: 'SFR' },
 				{ kind: 'rest', durationSec: 30 },
-				{ kind: 'work', durationSec: 20, label: 'ベース+3 全力もがき' },
+				{ kind: 'work', durationSec: 20, label: 'SFR' },
 				{ kind: 'rest', durationSec: 40 },
-				{ kind: 'work', durationSec: 10, label: 'ベース+3 全力もがき' },
+				{ kind: 'work', durationSec: 10, label: 'SFR' },
 				{ kind: 'rest', durationSec: 50 },
-				{ kind: 'work', durationSec: 20, label: 'ベース+3 全力もがき' },
+				{ kind: 'work', durationSec: 20, label: 'SFR' },
 				{ kind: 'rest', durationSec: 40 },
-				{ kind: 'work', durationSec: 30, label: 'ベース+3 全力もがき' },
+				{ kind: 'work', durationSec: 30, label: 'SFR' },
 				{ kind: 'rest', durationSec: 30 }
 			]
 		},

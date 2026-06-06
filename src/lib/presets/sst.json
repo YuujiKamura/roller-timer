@@ -13,12 +13,12 @@
     {
       "name": "SST 本体 (L4 / L3 を 5分ずつ × 3 セット)",
       "phases": [
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 １セット目", "zone": "L4" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ １セット目", "zone": "L3" },
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ２セット目", "zone": "L4" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ ２セット目", "zone": "L3" },
-        { "kind": "work", "durationSec": 300, "label": "L4ソリア　 ３セット目", "zone": "L4" },
-        { "kind": "work", "durationSec": 300, "label": "L3メディオ ３セット目", "zone": "L3" }
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ", "zone": "L3" },
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ", "zone": "L3" },
+        { "kind": "work", "durationSec": 300, "label": "L4ソリア", "zone": "L4" },
+        { "kind": "work", "durationSec": 300, "label": "L3メディオ", "zone": "L3" }
       ]
     },
     {
