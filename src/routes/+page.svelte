@@ -286,11 +286,17 @@
 					readonly={ioMode === 'export'}
 				></textarea>
 				{#if ioError}<div class="io-err">{ioError}</div>{/if}
-				{#if ioMode === 'import'}
-					<div class="io-actions">
+				<div class="io-actions">
+					{#if ioMode === 'export'}
+						<button onclick={downloadCurrentJson}>💾 ファイルに保存</button>
+					{:else}
 						<button onclick={commitImport}>読込</button>
-					</div>
-				{/if}
+						<label class="io-file-label">
+							📂 ファイルから読込
+							<input type="file" accept=".json,application/json" onchange={handleImportFile} hidden />
+						</label>
+					{/if}
+				</div>
 				{#if customWorkouts.length > 0}
 					<div class="io-customs">
 						<div class="io-customs-title">保存済みカスタム</div>
