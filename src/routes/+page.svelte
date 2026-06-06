@@ -7,7 +7,7 @@
 	import { sensorStore } from '$lib/sensors/store.svelte';
 	import { connectFtms, connectHrm, disconnectFtms, disconnectHrm, isWebBluetoothSupported, tryAutoReconnect } from '$lib/sensors/bluetooth';
 	import { hasUsefulSamples, sessionRecorder } from '$lib/session/recorder.svelte';
-	import { downloadGpx } from '$lib/session/gpx';
+	import { downloadTcx } from '$lib/session/tcx';
 
 	const STORAGE_PRESET = 'tabata.preset';
 	const STORAGE_MUTE = 'tabata.muted';
@@ -140,10 +140,10 @@
 	const ringC = 2 * Math.PI * ringR;
 	const dashOffset = $derived(ringC * (1 - timer.progressInPhase()));
 
-	const gpxSampleCount = $derived(
+	const tcxSampleCount = $derived(
 		recorder.completed?.samples.length ?? recorder.current?.samples.length ?? 0
 	);
-	const gpxAvailable = $derived(gpxSampleCount > 0);
+	const tcxAvailable = $derived(tcxSampleCount > 0);
 
 	function toggleFtms() {
 		if (sensors.ftmsStatus === 'connected' || sensors.ftmsStatus === 'connecting') disconnectFtms();
@@ -227,15 +227,15 @@
 			{/if}
 			<button onclick={handleReset}>リセット</button>
 			<button
-				class="gpx-btn"
-				disabled={!gpxAvailable}
+				class="tcx-btn"
+				disabled={!tcxAvailable}
 				onclick={() => {
 					const s = recorder.completed ?? recorder.current;
-					if (s) downloadGpx(s);
+					if (s) downloadTcx(s);
 				}}
-				title={gpxAvailable ? 'GPX をダウンロード (Strava にアップロード可)' : 'スタート後に保存できます'}
+				title={tcxAvailable ? 'TCX をダウンロード (Strava にアップロード可)' : 'スタート後に保存できます'}
 			>
-				GPX 保存{gpxSampleCount ? ` (${gpxSampleCount}秒)` : ''}
+				TCX 保存{tcxSampleCount ? ` (${tcxSampleCount}秒)` : ''}
 			</button>
 		</div>
 
@@ -517,14 +517,14 @@
 		text-align: center;
 		padding: 0 0.5rem;
 	}
-	.gpx-btn {
+	.tcx-btn {
 		background: #2e7cd6;
 		border-color: #2e7cd6;
 		color: #fff;
 		font-weight: 700;
 	}
-	.gpx-btn:hover:not(:disabled) { background: #3a8cdf; }
-	.gpx-btn:disabled { background: #cbd5e0; border-color: #cbd5e0; color: #fff; cursor: not-allowed; }
+	.tcx-btn:hover:not(:disabled) { background: #3a8cdf; }
+	.tcx-btn:disabled { background: #cbd5e0; border-color: #cbd5e0; color: #fff; cursor: not-allowed; }
 
 	.list {
 		overflow-y: auto;
